@@ -15,11 +15,10 @@ export class AuthGuard implements CanActivate {
       map(user =>
         {
         if(user) return true;
-        else
-        {
+      
         this.toastr.error('you shall not pass')
         return false;
-        }
+       
       })
     )
   }

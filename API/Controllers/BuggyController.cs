@@ -32,16 +32,16 @@ namespace API.Controllers
              }
          }
           [HttpGet("server-error")]
-        //  public ActionResult<AppUser>GetServerError()
-        //  {
+         public ActionResult<AppUser>GetServerError()
+         {
             
-        //           var thing=_context.Users.Find(-1);
-        //     var thingToReturn=thing.ToString();
-        //     return thingToReturn;
+                  var thing=_context.Users.Find(-1);
+            // var thingToReturn=thing.ToString();
+             return thing;
 
             
              
-        //  }
+         }
           [HttpGet("bad-request")]
          public ActionResult<string>GetBadRequest()
          {
