@@ -8,6 +8,8 @@ using  System.Security.Cryptography;
 using System.Text;
 using API.DTOs;
 using API.Interfaces;
+using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -53,7 +55,8 @@ namespace API.Controllers
         [HttpPost("login")]
     public ActionResult<UserDTO>Login(LoginDTO loginDTO)
     {
-        var user= _context.Users.SingleOrDefault(x => x.UserName==loginDTO.Username);
+        var user= _context.Users.Include(p=>p.Photos).
+        SingleOrDefault(x => x.UserName==loginDTO.Username);
         if(user==null)
         return Unauthorized("Invalid username");
         using var hmac=new HMACSHA512(user.PasswordSalt);
@@ -65,7 +68,8 @@ namespace API.Controllers
         }
         return new UserDTO{
                 Username=user.UserName,
-                Token=_tokenService.CreateToken(user)
+                Token=_tokenService.CreateToken(user),
+                photoUrl=user.Photos.FirstOrDefault(x => x.IsMain)?.Url
             };
     }
 }

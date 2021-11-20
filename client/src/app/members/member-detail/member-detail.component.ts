@@ -10,13 +10,18 @@ import { MembersService } from 'src/app/_services/members.service';
   styleUrls: ['./member-detail.component.css']
 })
 export class MemberDetailComponent implements OnInit {
+  membername:string;
 member:Member;
 galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
   constructor(private memberService:MembersService,private route:ActivatedRoute) { }
 
   ngOnInit(): void {
-    this.loadMember();
+    this.route.paramMap.subscribe(params => {
+      this.membername = params.get("membername")
+      this.loadMember(this.membername);
+    })
+    
     this.galleryOptions=[
       {
       width:'500px',
@@ -29,11 +34,14 @@ galleryOptions: NgxGalleryOptions[];
     ]
     
   }
-loadMember(){
-this.memberService.getMember(this.route.snapshot.paramMap.get('username')).subscribe(member=>{
+loadMember(membername){
+  debugger;
+  // this.route.snapshot.paramMap.get('username')
+this.memberService.getMember(membername).subscribe(member=>{
   this.member=member;
   this.galleryImages=this.getImages();
 })
+
 }
 getImages():NgxGalleryImage[]{
   const ImageUrl=[];
