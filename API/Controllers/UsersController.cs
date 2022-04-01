@@ -11,6 +11,7 @@ using API.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using API.Extensions;
+using API.Helpers;
 
 namespace API.Controllers
 {
@@ -26,21 +27,26 @@ namespace API.Controllers
             _mapper = mapper;
             _userRepository = userRepository;
             _photoService=photoService;
-            
         }
      
         [HttpGet]
-        public async Task <ActionResult<IEnumerable<MemberDTO>>>GetUsers()
-        {
-            var users= await _userRepository.GetMembersAsync();
-            var usersToReturn=_mapper.Map<IEnumerable<MemberDTO>>(users);
-            return Ok(usersToReturn);
+        public async Task <ActionResult<IEnumerable<MemberDTO>>>GetUsers([FromQuery]UserParams userParams)
+        {   
+            var user=await _userRepository.GetUserByUsernameAsync(User.getUserName());
+            userParams.CurrentUsername=user.UserName;
+            if(string.IsNullOrEmpty(userParams.Gender))
+            userParams.Gender=user.Gender=="male"?"female":"male";
+
+            var users= await _userRepository.GetMembersAsync(userParams);
+            Response.AddPaginationHeader(users.CurrentPage,users.PageSize,users.TotalCount,users.TotalPages);
+           // var usersToReturn=_mapper.Map<IEnumerable<MemberDTO>>(users);
+            return Ok(users);
         }
        
          [HttpGet("{username}",Name ="GetUser")]
          public async Task< ActionResult<MemberDTO>>GetUser(string username)
         {
-            return await _userRepository.GetMemberAsync(username);
+            return  await _userRepository.GetMemberAsync(username);
             //return _mapper.Map<MemberDTO>(users);
         }
         [HttpPut]
@@ -93,7 +99,7 @@ namespace API.Controllers
         }
 
 [HttpDelete("delete-photo/{photoId}")]
-public async Task<ActionResult>DeletePhoto(int photoId)
+public async Task<ActionResult> DeletePhoto(int photoId)
 {
     var user=await _userRepository.GetUserByUsernameAsync(User.getUserName());
     var photo=user.Photos.FirstOrDefault(x=>x.Id==photoId);
@@ -107,7 +113,9 @@ public async Task<ActionResult>DeletePhoto(int photoId)
        if(result.Error!=null) return BadRequest(result.Error.Message);
     }
     user.Photos.Remove(photo);
-    if(await _userRepository.SaveAllAsync()) return Ok();
+    if(await _userRepository.SaveAllAsync()) 
+    return Ok();
+    return BadRequest("Failed to delete photo");
 }
     }
 }

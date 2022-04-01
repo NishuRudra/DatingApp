@@ -8,8 +8,9 @@ using  System.Security.Cryptography;
 using System.Text;
 using API.DTOs;
 using API.Interfaces;
-using System.Data.Entity;
+using System.Data;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace API.Controllers
 {
@@ -18,27 +19,33 @@ namespace API.Controllers
         private readonly DataContext _context;
      
         private readonly ITokenService _tokenService;
-        public AccountController(DataContext context,ITokenService tokenService)
+        private readonly IMapper _mapper;
+        public AccountController(DataContext context,ITokenService tokenService,IMapper mapper)
         {
           _tokenService = tokenService;
            _context = context;
+           _mapper=mapper;
 
         }
         [HttpPost("register")]
         public async Task<ActionResult<UserDTO>>Register(RegisterDTO registerDto)
         {
            if(UserExists(registerDto.Username))return BadRequest("Username is taken");
+           var user=_mapper.Map<AppUser>(registerDto);
             using var hmac=new HMACSHA512();
-            var user=new AppUser{
-                UserName=registerDto.Username,
-                PasswordHash=hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt=hmac.Key
-            };
+          
+                user.UserName=registerDto.Username;
+                 user.PasswordHash=hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+                 user.PasswordSalt=hmac.Key;
+           
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return new UserDTO{
                 Username=user.UserName,
-                Token=_tokenService.CreateToken(user)
+                Token=_tokenService.CreateToken(user),
+                knownAs=user.KnownAs,
+                Gender=user.Gender
+                
             };
         }
         private  bool UserExists(string Username)
@@ -69,7 +76,9 @@ namespace API.Controllers
         return new UserDTO{
                 Username=user.UserName,
                 Token=_tokenService.CreateToken(user),
-                photoUrl=user.Photos.FirstOrDefault(x => x.IsMain)?.Url
+                PhotoUrl=user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                knownAs=user.KnownAs,
+                Gender=user.Gender
             };
     }
 }

@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { Messages } from '../_models/message';
+import { Pagination } from '../_models/pagination';
+import { MessageService } from '../_services/message.service';
 
 @Component({
   selector: 'app-messages',
@@ -6,10 +9,32 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./messages.component.css']
 })
 export class MessagesComponent implements OnInit {
-
-  constructor() { }
+messages:Messages[];
+pagination:Pagination;
+container='Inbox';
+pageNumber=1;
+pageSize=5;
+  constructor(private messageService:MessageService) { }
 
   ngOnInit(): void {
+   this.loadMessages();
   }
+  loadMessages(){
+    debugger;
+    this.messageService.getMessage(this.pageNumber,this.pageSize,this.container).subscribe(response=>{
+      this.messages=response.result;
+      this.pagination=response.pagination
+    }
+      
+      )
+      
+  }
+  pageChanged(event:any){
+    if(this.pageNumber!=event.page){
+      this.pageNumber=event.page;
+      this.loadMessages();    
+    }
+    
+  } 
 
 }
