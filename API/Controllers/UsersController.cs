@@ -42,7 +42,7 @@ namespace API.Controllers
            // var usersToReturn=_mapper.Map<IEnumerable<MemberDTO>>(users);
             return Ok(users);
         }
-       
+      
          [HttpGet("{username}",Name ="GetUser")]
          public async Task< ActionResult<MemberDTO>>GetUser(string username)
         {

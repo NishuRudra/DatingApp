@@ -9,11 +9,12 @@ import { MessageService } from '../_services/message.service';
   styleUrls: ['./messages.component.css']
 })
 export class MessagesComponent implements OnInit {
-messages:Messages[];
+messages:Messages[]=[];
 pagination:Pagination;
-container='Inbox';
+container='Unread';
 pageNumber=1;
 pageSize=5;
+loading=false;
   constructor(private messageService:MessageService) { }
 
   ngOnInit(): void {
@@ -21,9 +22,11 @@ pageSize=5;
   }
   loadMessages(){
     debugger;
+    this.loading=true;
     this.messageService.getMessage(this.pageNumber,this.pageSize,this.container).subscribe(response=>{
       this.messages=response.result;
-      this.pagination=response.pagination
+      this.pagination=response.pagination;
+      this.loading=false;
     }
       
       )
