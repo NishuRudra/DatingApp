@@ -12,6 +12,7 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
@@ -100,6 +101,25 @@ namespace API.Controllers
                 knownAs=user.KnownAs,
                 Gender=user.Gender
             };
+    }
+    [HttpPost("edit-roles/{username}")]
+    public async Task<ActionResult>EditRoles(string username,[FromQuery] string roles)
+    {
+        var selectedRoles=roles.Split(",").ToArray();
+        var user=await _usermanager.FindByNameAsync(username);
+        if(user==null)return NotFound("Could not find user");
+        var userRoles=await _usermanager.GetRolesAsync(user);
+        var result=await _usermanager.AddToRolesAsync(user,selectedRoles.Except(userRoles));
+        if(!result.Succeeded) return BadRequest("Faled to add to roles");
+        result=await _usermanager.RemoveFromRolesAsync(user,userRoles.Except(selectedRoles));
+         if(!result.Succeeded) return BadRequest("Faled to remove from roles");
+         return Ok (await _usermanager.GetRolesAsync(user));
+    }
+    [Authorize(Policy="ModeratePhotoRole")]
+    [HttpGet("photos-to-moderate")]
+    public ActionResult GetPhotosForModeration()
+    {
+        return Ok("Admins or moderate can see this");
     }
 }
 }
